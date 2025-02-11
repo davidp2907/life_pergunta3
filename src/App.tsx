@@ -204,7 +204,7 @@ function App() {
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors = validateForm();
     setErrors(newErrors);
@@ -217,6 +217,25 @@ function App() {
         dataAplicacao: now.toLocaleDateString('pt-BR')
       }));
       console.log('Form submitted:', formData);
+
+      // 🔹 Enviando os dados para o Google Sheets
+      try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycby7LllzSsMUzA8MQ13I6w8CJptlaigiN6NJDt70V__wv6A-WgW0K2uIYUO1jIhRav4g/exec", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          alert("Dados enviados com sucesso!");
+        } else {
+          alert("Erro ao enviar os dados.");
+        }
+      } catch (error) {
+        console.error("Erro ao enviar os dados:", error);
+        alert("Ocorreu um erro ao enviar os dados.");
+      };
+
     } else {
       // Scroll to the first error
       const firstErrorKey = Object.keys(newErrors)[0];
