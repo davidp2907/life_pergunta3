@@ -621,9 +621,9 @@ function App() {
                           required
                         >
                           <option value="">Selecione</option>
-                          <option value="Alta">3  -  Maior importância</option>
-                          <option value="Média">2  -  Média importância</option>
-                          <option value="Baixa">1  -  Menor importância</option>
+                          <option value="Maior importância">3  -  Maior importância</option>
+                          <option value="Média impostância">2  -  Média importância</option>
+                          <option value="Menor importância">1  -  Menor importância</option>
                         </select>
                       </td>
                       <td className="border p-2">
