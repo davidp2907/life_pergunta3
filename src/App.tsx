@@ -220,32 +220,29 @@ function App() {
 
       // 🔹 Enviando os dados para o Google Sheets
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycby7LllzSsMUzA8MQ13I6w8CJptlaigiN6NJDt70V__wv6A-WgW0K2uIYUO1jIhRav4g/exec", {
+        const response = await fetch("http://localhost:3000/addData", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(formData),  
         });
-
+      
         if (response.ok) {
+          const data = await response.json();
+          console.log("Resposta da API:", data);
           alert("Dados enviados com sucesso!");
         } else {
-          alert("Erro ao enviar os dados.");
+          const errorData = await response.json();
+          console.error("Erro na resposta:", errorData);
+          alert("Erro ao enviar os dados: " + (errorData.message || "Erro desconhecido"));
         }
       } catch (error) {
         console.error("Erro ao enviar os dados:", error);
         alert("Ocorreu um erro ao enviar os dados.");
-      };
-
-    } else {
-      // Scroll to the first error
-      const firstErrorKey = Object.keys(newErrors)[0];
-      const firstErrorElement = document.querySelector(`[name="${firstErrorKey}"]`);
-      if (firstErrorElement) {
-        firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-  };
-
+  }
+      
+      
   const handleBlur = (field: string) => {
     setTouched(prev => ({ ...prev, [field]: true }));
     const validationErrors = validateForm();
