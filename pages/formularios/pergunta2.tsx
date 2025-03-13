@@ -235,7 +235,7 @@ function App() {
           alert("Erro ao enviar os dados.");
         });
 
-      window.location.href = "https://www.lifenergy.com.br/"; // redirciona para o site do life
+      window.location.href = "https://www.lifenergy.com.br/"; // redireciona para o site do life
     }
   }
 
@@ -527,39 +527,19 @@ function App() {
                 <p>É FUNDAMENTAL QUE CADA TAREFA SEJA REALIZADA DE FORMA CONTÍNUA, SEM INTERRUPÇÕES. ELAS PODEM SER EXECUTADAS TANTO FISICAMENTE QUANTO DE MANEIRA IMAGINATIVA.</p>
                 <p>RECOMENDA-SE QUE VOCÊ RESPONDA DE FORMA ESPONTÂNEA, SEM EXCESSO DE REFLEXÃO, POIS SE TRATA DE ATIVIDADES SIMPLES E ROTINEIRAS DO DIA A DIA.</p>
               </div>
-
-              {/* Fractal de Comportamento */}
-              <div>
-                <label className="block text-teal-700 font-medium mb-2">
-                  Fractal De Comportamento (Atividade) <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  name="fractalComportamento"
-                  className={`w-full p-2 border rounded-lg h-32 ${errors.fractalComportamento && touched.fractalComportamento ? 'border-red-500' : ''}`}
-                  maxLength={1000}
-                  placeholder="COPIE A ATIVIDADE EXATAMENTE COMO ESTA ESCRITA NO CARTÃO QUE VOCÊ ESCOLHEU, OU QUE FOI OFERECIDO PELO APLICADOR PARA SUA RESPOSTA"
-                  value={formData.fractalComportamento}
-                  onChange={(e) => {
-                    setFormData({ ...formData, fractalComportamento: e.target.value });
-                    if (touched.fractalComportamento) {
-                      handleBlur('fractalComportamento');
-                    }
-                  }}
-                  onBlur={() => handleBlur('fractalComportamento')}
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  {formData.fractalComportamento.length}/1000 caracteres
-                </p>
-                {errors.fractalComportamento && touched.fractalComportamento && (
-                  <p className="text-red-500 text-sm mt-1">{errors.fractalComportamento}</p>
-                )}
-              </div>
             </div>
           </div>
 
           {/* Seção QUADRO DE REGISTRO DE DADOS */}
+          {/* Fractal de Comportamento */}
           <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg">
             <h2 className="text-xl font-semibold text-teal-700 mb-6">QUADRO DE REGISTRO DE DADOS</h2>
+            <label className="block text-teal-700 font-medium mb-2">
+              Fractal De Comportamento (Atividade)
+            </label>
+            <p className="text-teal-700 mb-4">
+              Cite três aspectos mais frequentes que seus amigos pensam de você. Hierarquize e Justifique.
+            </p>
 
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -592,6 +572,9 @@ function App() {
                             const newRespostas = [...formData.respostas];
                             newRespostas[index].resposta = e.target.value;
                             setFormData({ ...formData, respostas: newRespostas });
+                            // Ajusta a altura automaticamente
+                            e.target.style.height = "auto";
+                            e.target.style.height = `${e.target.scrollHeight}px`;
                           }}
                           required
                         />
