@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 interface FormData {
+  formId: string;
   startTime: string;
   fullName: string;
   email: string;
@@ -23,6 +24,7 @@ interface FormData {
 
 function App() {
   const [formData, setFormData] = useState<FormData>({
+    formId: "pergunta3",
     startTime: '',
     fullName: '',
     email: '',
@@ -178,11 +180,6 @@ function App() {
       newErrors.escolhaAtividade = 'Escolha da atividade é obrigatória';
     }
 
-    // Validate fractal de comportamento
-    if (!formData.fractalComportamento.trim()) {
-      newErrors.fractalComportamento = 'Fractal de comportamento é obrigatório';
-    }
-
     // Validate respostas
     formData.respostas.forEach((resposta, index) => {
       if (!resposta.resposta.trim()) {
@@ -219,7 +216,7 @@ function App() {
       console.log('Form submitted:', formData);
 
       // Enviando os dados para o Google Sheets
-      await fetch("https://script.google.com/macros/s/AKfycbxaB9wD6NkuH4OelPcVZDYJNws2V2a7GMmEWF8zAqKEuh49iSmYQ9BkQQnupXBfNer8/exec", {
+      await fetch("https://script.google.com/macros/s/AKfycbzXgfE61CgzLkZulpFa-nejVgHZikNzJmW3VrQYl78MfUzwEyQGRr-pGPNKPQEhHDMi/exec", {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
@@ -235,7 +232,7 @@ function App() {
           alert("Erro ao enviar os dados.");
         });
 
-      window.location.href = "https://www.lifenergy.com.br/"; // redirciona para o site do life
+      window.location.href = "https://www.lifenergy.com.br/"; // redireciona para o site do life
     }
   }
 
@@ -527,39 +524,16 @@ function App() {
                 <p>É FUNDAMENTAL QUE CADA TAREFA SEJA REALIZADA DE FORMA CONTÍNUA, SEM INTERRUPÇÕES. ELAS PODEM SER EXECUTADAS TANTO FISICAMENTE QUANTO DE MANEIRA IMAGINATIVA.</p>
                 <p>RECOMENDA-SE QUE VOCÊ RESPONDA DE FORMA ESPONTÂNEA, SEM EXCESSO DE REFLEXÃO, POIS SE TRATA DE ATIVIDADES SIMPLES E ROTINEIRAS DO DIA A DIA.</p>
               </div>
-
-              {/* Fractal de Comportamento */}
-              <div>
-                <label className="block text-teal-700 font-medium mb-2">
-                  Fractal De Comportamento (Atividade) <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  name="fractalComportamento"
-                  className={`w-full p-2 border rounded-lg h-32 ${errors.fractalComportamento && touched.fractalComportamento ? 'border-red-500' : ''}`}
-                  maxLength={1000}
-                  placeholder="COPIE A ATIVIDADE EXATAMENTE COMO ESTA ESCRITA NO CARTÃO QUE VOCÊ ESCOLHEU, OU QUE FOI OFERECIDO PELO APLICADOR PARA SUA RESPOSTA"
-                  value={formData.fractalComportamento}
-                  onChange={(e) => {
-                    setFormData({ ...formData, fractalComportamento: e.target.value });
-                    if (touched.fractalComportamento) {
-                      handleBlur('fractalComportamento');
-                    }
-                  }}
-                  onBlur={() => handleBlur('fractalComportamento')}
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  {formData.fractalComportamento.length}/1000 caracteres
-                </p>
-                {errors.fractalComportamento && touched.fractalComportamento && (
-                  <p className="text-red-500 text-sm mt-1">{errors.fractalComportamento}</p>
-                )}
-              </div>
             </div>
           </div>
 
           {/* Seção QUADRO DE REGISTRO DE DADOS */}
           <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg">
             <h2 className="text-xl font-semibold text-teal-700 mb-6">QUADRO DE REGISTRO DE DADOS</h2>
+            <label className="block text-teal-700 font-medium mb-2">
+              Fractal De Comportamento
+              <p>Cite três aspectos mais frequentes que seus amigos pensam de você. Hierarquize e justifique.</p>
+            </label>
 
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
