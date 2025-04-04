@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface FormData {
   formId: string;
+  respostaId: string;
   startTime: string;
+  endTime: string;
+  completionTimeSeconds: number;
+  dataAplicacao: string;
   fullName: string;
   email: string;
   naturalidade: string;
@@ -12,7 +16,6 @@ interface FormData {
   aplicador: string;
   nomeAplicador: string;
   escolhaAtividade: string;
-  dataAplicacao: string;
   fractalComportamento: string;
   respostas: Array<{
     resposta: string;
@@ -24,8 +27,12 @@ interface FormData {
 
 function App() {
   const [formData, setFormData] = useState<FormData>({
-    formId: "pergunta3",
+    formId: "pergunta3", // Will be set in useEffect
+    respostaId: '',
     startTime: '',
+    endTime: '',
+    completionTimeSeconds: 0,
+    dataAplicacao: '',
     fullName: '',
     email: '',
     naturalidade: '',
@@ -35,7 +42,6 @@ function App() {
     aplicador: '',
     nomeAplicador: '',
     escolhaAtividade: '',
-    dataAplicacao: '',
     fractalComportamento: '',
     respostas: [
       { resposta: '', importancia: '', justificativa: '' },
@@ -48,15 +54,21 @@ function App() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [usedImportancias, setUsedImportancias] = useState<Set<string>>(new Set());
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const startTimeRef = useRef<number>(Date.now());
 
   useEffect(() => {
     const now = new Date();
-    const timeString = now.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    setFormData(prev => ({ ...prev, startTime: timeString }));
+    const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  
+    setFormData(prev => ({
+      ...prev,
+      respostaId: uniqueId, // ID único da submissão
+      startTime: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      dataAplicacao: now.toLocaleDateString('pt-BR')
+    }));
   }, []);
+  
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -79,7 +91,7 @@ function App() {
     rest = (sum * 10) % 11;
     if ((rest === 10) || (rest === 11)) rest = 0;
     if (rest !== parseInt(cleanCPF.substring(9, 10))) return false;
-
+      
     sum = 0;
     for (let i = 1; i <= 10; i++) {
       sum = sum + parseInt(cleanCPF.substring(i - 1, i)) * (12 - i);
@@ -203,38 +215,49 @@ function App() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) {
+      return; // Prevent multiple submissions
+    }
+
     const newErrors = validateForm();
     setErrors(newErrors);
     setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
 
     if (Object.keys(newErrors).length === 0) {
-      const now = new Date();
-      setFormData(prev => ({
-        ...prev,
-        dataAplicacao: now.toLocaleDateString('pt-BR')
-      }));
-      console.log('Form submitted:', formData);
+      setIsSubmitting(true);
 
-      // Enviando os dados para o Google Sheets
-      await fetch("https://script.google.com/macros/s/AKfycbzXgfE61CgzLkZulpFa-nejVgHZikNzJmW3VrQYl78MfUzwEyQGRr-pGPNKPQEhHDMi/exec", {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      })
-        .then(() => {
-          // Como estamos usando 'no-cors', não podemos acessar o corpo da resposta,
-          // então vamos apenas mostrar a mensagem de sucesso diretamente.
-          alert("Formulário enviado com sucesso!");
-        })
-        .catch(error => {
-          console.error("Erro ao enviar:", error);
-          alert("Erro ao enviar os dados.");
+      // Calculate completion time
+      const endTime = Date.now();
+      const completionTimeSeconds = Math.floor((endTime - startTimeRef.current) / 1000 / 60);
+
+      
+      const finalFormData = {
+        ...formData,
+        endTime: new Date().toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        completionTimeSeconds
+      };
+
+      try {
+        await fetch("https://script.google.com/macros/s/AKfycbwg91VHM12inVLopz5OgLk16iCHvL7739XUA6GTbFiVExYk4pjV0UBLhUePKXFfJhw/exec", {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(finalFormData)
         });
 
-      window.location.href = "https://www.lifenergy.com.br/"; // redireciona para o site do life
+        alert("Formulário enviado com sucesso!");
+        window.location.href = "https://www.lifenergy.com.br/";
+      } catch (error) {
+        console.error("Erro ao enviar:", error);
+        alert("Erro ao enviar os dados.");
+        setIsSubmitting(false);
+      }
     }
-  }
+  };
 
   const handleBlur = (field: string) => {
     setTouched(prev => ({ ...prev, [field]: true }));
@@ -497,7 +520,7 @@ function App() {
                       checked={formData.escolhaAtividade === 'aplicador'}
                       onChange={(e) => {
                         setFormData({ ...formData, escolhaAtividade: e.target.value });
-                        if (touched.escolhaAtiv) {
+                        if (touched.escolhaAtividade) {
                           handleBlur('escolhaAtividade');
                         }
                       }}
@@ -517,7 +540,6 @@ function App() {
           {/* Seção INSTRUÇÕES */}
           <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg">
             <h2 className="text-xl font-semibold text-teal-700 mb-6">INSTRUÇÕES</h2>
-
             <div className="space-y-6">
               <div className="bg-teal-50 p-4 rounded-lg text-teal-800 space-y-4">
                 <p>ENCONTRE UM AMBIENTE TRANQUILO, LIVRE DE INTERRUPÇÕES, OU UTILIZE UM COMPUTADOR COM UMA CONEXÃO ESTÁVEL À INTERNET. VOCÊ RECEBE TAREFAS OU PADRÕES DE COMPORTAMENTO PARA DESENVOLVER.</p>
@@ -532,7 +554,7 @@ function App() {
             <h2 className="text-xl font-semibold text-teal-700 mb-6">QUADRO DE REGISTRO DE DADOS</h2>
             <label className="block text-teal-700 font-medium mb-2">
               Fractal De Comportamento
-              <p>Você precisa fazer uma longa viagem e só pode levar três referencias. Enumere, hierarquize e Justifique.</p>
+              <p>Suponha que você joga na Mega-Sena e ganha. Cite as 3 primeiras coisas que faria com o dinheiro. Hieraquize e justifique.</p>
             </label>
 
             <div className="overflow-x-auto">
@@ -560,58 +582,59 @@ function App() {
                       <td className="border p-2">
                         <input
                           type="text"
-                          className="w-full p-1 border rounded"
+                          className={`w-full p-1 border rounded ${
+                            errors[`resposta${index}`] && touched[`resposta${index}`] ? 'border-red-500' : ''
+                          }`}
                           value={item.resposta}
                           onChange={(e) => {
                             const newRespostas = [...formData.respostas];
                             newRespostas[index].resposta = e.target.value;
                             setFormData({ ...formData, respostas: newRespostas });
                           }}
-                          required
+                          onBlur={() => handleBlur(`resposta${index}`)}
                         />
+                        {errors[`resposta${index}`] && touched[`resposta${index}`] && (
+                          <p className="text-red-500 text-sm mt-1">{errors[`resposta${index}`]}</p>
+                        )}
                       </td>
                       <td className="border p-2">
                         <select
-                          className="w-full p-1 border rounded"
+                          className={`w-full p-1 border rounded ${
+                            errors[`importancia${index}`] && touched[`importancia${index}`] ? 'border-red-500' : ''
+                          }`}
                           value={item.importancia}
-                          onChange={(e) => {
-                            const newRespostas = [...formData.respostas];
-
-                            // Reseta a opção anterior, se já estiver selecionada em outra linha
-                            newRespostas.forEach((res, i) => {
-                              if (i !== index && res.importancia === e.target.value) {
-                                newRespostas[i].importancia = ""; // Volta para "Selecione"
-                              }
-                            });
-
-                            // Atualiza a linha atual com a nova escolha
-                            newRespostas[index].importancia = e.target.value;
-                            setFormData({ ...formData, respostas: newRespostas });
-                          }}
-                          required
+                          onChange={(e) => handleImportanciaChange(index, e.target.value)}
+                          onBlur={() => handleBlur(`importancia${index}`)}
                         >
                           <option value="">Selecione</option>
-                          <option value="Maior importância">3  -  Maior importância</option>
-                          <option value="Média impostância">2  -  Média importância</option>
-                          <option value="Menor importância">1  -  Menor importância</option>
+                          <option value="Maior importância">3 - Maior importância</option>
+                          <option value="Média importância">2 - Média importância</option>
+                          <option value="Menor importância">1 - Menor importância</option>
                         </select>
+                        {errors[`importancia${index}`] && touched[`importancia${index}`] && (
+                          <p className="text-red-500 text-sm mt-1">{errors[`importancia${index}`]}</p>
+                        )}
                       </td>
                       <td className="border p-2">
                         <textarea
-                          className="w-full p-1 border rounded resize-none overflow-hidden"
+                          className={`w-full p-1 border rounded resize-none overflow-hidden ${
+                            errors[`justificativa${index}`] && touched[`justificativa${index}`] ? 'border-red-500' : ''
+                          }`}
                           value={item.justificativa}
                           onChange={(e) => {
                             const newRespostas = [...formData.respostas];
                             newRespostas[index].justificativa = e.target.value;
                             setFormData({ ...formData, respostas: newRespostas });
 
-                            // Ajusta a altura automaticamente
                             e.target.style.height = "auto";
                             e.target.style.height = `${e.target.scrollHeight}px`;
                           }}
-                          rows={1} // Começa pequeno
-                          required
+                          onBlur={() => handleBlur(`justificativa${index}`)}
+                          rows={1}
                         />
+                        {errors[`justificativa${index}`] && touched[`justificativa${index}`] && (
+                          <p className="text-red-500 text-sm mt-1">{errors[`justificativa${index}`]}</p>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -636,7 +659,7 @@ function App() {
                   onChange={(e) => {
                     setFormData({ ...formData, feedbackFinal: e.target.value });
                     if (touched.feedbackFinal) {
-                      handleBlur('fee dbackFinal');
+                      handleBlur('feedbackFinal');
                     }
                   }}
                   onBlur={() => handleBlur('feedbackFinal')}
@@ -650,7 +673,8 @@ function App() {
 
           {/* Seção NOSSO AGRADECIMENTO */}
           <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 shadow-lg">
-            <h2 className="text-xl font-semibold text-teal-700 mb-6">NOSSO AGRADECIMENTO</h2>
+            <h2 className="text-xl font-semibold text-teal-700 mb-6">NOSSO AGRADEC
+IMENTO</h2>
             <p className="text-teal-700 mb-4">
               Desde já agradecemos a seu empenho e participação neste projeto inteiramente DEDICADO A VOCÊ!
             </p>
@@ -683,9 +707,14 @@ function App() {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-teal-600 text-white py-3 px-4 rounded-lg hover:bg-teal-700 transition-colors font-medium"
+            disabled={isSubmitting}
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+              isSubmitting 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-teal-600 hover:bg-teal-700 text-white'
+            }`}
           >
-            Enviar
+            {isSubmitting ? 'Enviando...' : 'Enviar'}
           </button>
         </form>
       </div>
