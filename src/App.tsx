@@ -554,7 +554,7 @@ function App() {
             <h2 className="text-xl font-semibold text-teal-700 mb-6">QUADRO DE REGISTRO DE DADOS</h2>
             <label className="block text-teal-700 font-medium mb-2">
               Fractal De Comportamento
-              <p>Suponha que você joga na Mega-Sena e ganha. Cite as 3 primeiras coisas que faria com o dinheiro. Hieraquize e justifique.</p>
+              <p>Você precisa fazer uma longa viagem e só pode levar três referências.</p>
             </label>
 
             <div className="overflow-x-auto">
