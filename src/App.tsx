@@ -242,7 +242,7 @@ function App() {
       };
 
       try {
-        await fetch("https://script.google.com/macros/s/AKfycbwg91VHM12inVLopz5OgLk16iCHvL7739XUA6GTbFiVExYk4pjV0UBLhUePKXFfJhw/exec", {
+        await fetch("https://script.google.com/macros/s/AKfycby7zFnza_h0HGWQrLkE6OBXndia-7065lgDpCgvbbtyW80N8jO92yzQ1DUGRCKAf0gi/exec", {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "application/json" },
